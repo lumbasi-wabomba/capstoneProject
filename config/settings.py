@@ -132,12 +132,15 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 #permissions and authentication
 REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASS': [
-        'rest_framework.permissions.IsAuthenticated',
+    'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+        
     ],
-    'DEFAULT_AUTHENTICATION_CLASS': [
+    'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
-    ]
+    ],
+    'DEFAULT_FILTER_BACKENDS': [
+        'djang0_filters.rest_frameworks.DjangoFilterBackend'
+    ],
 }
 AUTH_USER_MODEL = 'unicollab.User'

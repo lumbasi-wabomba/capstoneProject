@@ -2,12 +2,6 @@ from rest_framework import serializers
 from .models import User, Project, Task, Resource, Message, Notification, Schedule
 from datetime import date, datetime
 
-
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User 
-        fields = '__all__'
-
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
@@ -68,3 +62,16 @@ class ScheduleSerializer(serializers.ModelSerializer):
         if start_time > end_time and end_time < datetime.now():
             raise serializers.ValidationError("there's an error with your time plan. End time is incorrect")
         return attrs
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User 
+        project = ProjectSerializer(many=True, read_only=True)
+        tasks = TaskSerializer(many=True, read_only=True)
+        notifications = NotificationSerializer(many=True, read_only=True)
+        schedule = ScheduleSerializer(many=True, read_only=True)
+        fields = ['project', 'tasks', 'notifications', 'schedule', 'id', 'username','first_name','last_name','email','date_joined']
+        read_only_fields =['id','email', 'date_joined']
+
+        
