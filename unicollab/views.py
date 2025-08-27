@@ -7,19 +7,19 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
-
+from django.contrib.auth import get_user_model
 from .models import User, Project, Task, Resource, Message, Notification, Schedule
 from .serializers import (
     UserSerializer, ProjectSerializer, TaskSerializer,
     ResourceSerializer, MessageSerializer, NotificationSerializer,
-    ScheduleSerializer
+    ScheduleSerializer, RegisterSerializer
 )
 
 class RegisterView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        serializer = UserSerializer(data=request.data)
+        serializer = RegisterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         token, _ = Token.objects.get_or_create(user=user)
@@ -27,16 +27,23 @@ class RegisterView(APIView):
             "user": serializer.data,
             "token": token.key
         }, status=status.HTTP_201_CREATED)
-
+    
 
 class LoginView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        username = request.data.get("username")
+        username_or_email = request.data.get("username") 
         password = request.data.get("password")
-        user = authenticate(username=username, password=password)
+        user = authenticate(username=username_or_email, password=password)
 
+        if not user:
+            try:
+                User = get_user_model()
+                user_obj = User.objects.get(email=username_or_email)
+                user = authenticate(username=user_obj.username, password=password)
+            except User.DoesNotExist:
+                user = None
         if not user:
             return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -126,7 +133,9 @@ class ResourceViewSet(viewsets.ModelViewSet):
     serializer_class = ResourceSerializer
 
     def get_queryset(self):
-        return Resource.objects.filter(is_public=True) | Resource.objects.filter(uploaded_by=self.request.user)
+        if self.request.user.is_authenticated:
+            return Resource.objects.filter(is_public=True) | Resource.objects.filter(uploaded_by=self.request.user)
+        return Resource.objects.filter(is_public=True)
 
 class NotificationViewSet(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication]

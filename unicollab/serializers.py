@@ -65,13 +65,35 @@ class ScheduleSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User 
-        project = ProjectSerializer(many=True, read_only=True)
-        tasks = TaskSerializer(many=True, read_only=True)
-        notifications = NotificationSerializer(many=True, read_only=True)
-        schedule = ScheduleSerializer(many=True, read_only=True)
-        fields = ['project', 'tasks', 'notifications', 'schedule', 'id', 'username','first_name','last_name','email','date_joined']
-        read_only_fields =['id','email', 'date_joined']
+    project = ProjectSerializer(many=True, read_only=True)
+    tasks = TaskSerializer(many=True, read_only=True)
+    notifications = NotificationSerializer(many=True, read_only=True)
+    schedule = ScheduleSerializer(many=True, read_only=True)
 
-        
+    class Meta:
+        model = User
+        fields = ['project', 'tasks', 'notifications', 'schedule', 'id', 'username', 'first_name', 'last_name', 'email', 'date_joined',]
+        read_only_fields =['id', 'date_joined']
+
+
+class RegisterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'first_name', 'last_name', 'password', 'password2']
+        extra_kwargs = {
+            'password': {'write_only': True},
+            'password2': {'write_only': True}
+        }
+
+    def validate(self, attrs):
+        if attrs['password'] != attrs['password2']:
+            raise serializers.ValidationError({"password": "Passwords must match"})
+        return attrs
+
+    def create(self, validated_data):
+        validated_data.pop('password2')
+        password = validated_data.pop('password')
+        user = User(**validated_data)
+        user.set_password(password)
+        user.save()
+        return user

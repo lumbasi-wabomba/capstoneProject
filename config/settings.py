@@ -149,7 +149,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     ],
     'DEFAULT_FILTER_BACKENDS': [
-        'djang0_filters.rest_frameworks.DjangoFilterBackend'
+        'django_filters.rest_framework.DjangoFilterBackend'
     ],
 }
 AUTH_USER_MODEL = 'unicollab.User'
