@@ -77,6 +77,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class RegisterSerializer(serializers.ModelSerializer):
+    password2 = serializers.CharField(write_only=True)
     class Meta:
         model = User
         fields = ['username', 'email', 'first_name', 'last_name', 'password', 'password2']

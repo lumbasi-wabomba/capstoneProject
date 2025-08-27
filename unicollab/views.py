@@ -48,6 +48,7 @@ class LoginView(APIView):
             return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 
         token, _ = Token.objects.get_or_create(user=user)
+        request.session['auth_token'] = token.key
         return Response({"token": token.key}, status=status.HTTP_200_OK)
 
 
@@ -56,6 +57,7 @@ class LogoutView(APIView):
 
     def post(self, request):
         try:
+            request.session.pop('auth_token', None)
             request.user.auth_token.delete()
         except Exception:
             return Response({"error": "Token not found"}, status=status.HTTP_400_BAD_REQUEST)
