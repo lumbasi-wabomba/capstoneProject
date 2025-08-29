@@ -9,18 +9,26 @@ class ProjectSerializer(serializers.ModelSerializer):
         fields = ['title', 'description', 'is_public', 'created_by', 'members']
 
 class TaskSerializer(serializers.ModelSerializer):
+    project = serializers.SlugRelatedField(slug_field='title', queryset=Project.objects.all())
+    assigned_to = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
+    due_date = serializers.DateField()
+
     class Meta:
         model = Task
         read_only_fields = ['assigned_to', 'project']
-        fields = ['title', 'description', 'status', 'due_date', 'is_public', 'assigned_to', 'project']
+        fields = ['title', 'description', 'status', 'priority', 'due_date', 'is_public', 'assigned_to', 'project']
 
-    def validate(self, value):
-        if value < date.today():
-            raise serializers.ValidationError("Due date cannot be in the past.")
-        return value 
 
+    def validate(self, attrs):
+        due_date = attrs.get("due_date")
+        if due_date and due_date < date.today():
+            raise serializers.ValidationError({"due_date": "Due date cannot be in the past."})
+        return attrs
 
 class ResourceSerializer(serializers.ModelSerializer):
+    timestamp = serializers.DateTimeField(read_only=True)
+    project = serializers.SlugRelatedField(slug_field='title', queryset=Project.objects.all())
+    uploaded_by = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all())
     class Meta:
         model = Resource
         fields = '__all__'
@@ -50,10 +58,14 @@ class NotificationSerializer(serializers.ModelSerializer):
         read_only_fields = ['user']
 
 class ScheduleSerializer(serializers.ModelSerializer):
+    start_time = serializers.DateTimeField()
+    end_time = serializers.DateTimeField()
+    project = serializers.SlugRelatedField(slug_field='title', queryset=Project.objects.all())
+    scheduled_by = serializers.SlugRelatedField(slug_field='username', queryset=User.objects.all()) 
     class Meta:
         model = Schedule
         fields = '__all__'
-        read_only_fields = ['scheduled_by']
+        read_only_fields = ['scheduled_by', 'project']
 
     def validate(self, attrs):
         start_time = attrs.get('start_time')
@@ -65,14 +77,15 @@ class ScheduleSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    project = ProjectSerializer(many=True, read_only=True)
-    tasks = TaskSerializer(many=True, read_only=True)
-    notifications = NotificationSerializer(many=True, read_only=True)
-    schedule = ScheduleSerializer(many=True, read_only=True)
+    project = ProjectSerializer(many=True, read_only=True, source='created_projects')
+    tasks = TaskSerializer(many=True, read_only=True, source='assigned_tasks')
+    notifications = NotificationSerializer(many=True, read_only=True, source='user_notifications')
+    schedule = ScheduleSerializer(many=True, read_only=True, source='user_schedules')
+    resources = ResourceSerializer(many=True, read_only=True, source='uploaded_files')
 
     class Meta:
         model = User
-        fields = ['project', 'tasks', 'notifications', 'schedule', 'id', 'username', 'first_name', 'last_name', 'email', 'date_joined',]
+        fields = ['project', 'tasks', 'notifications', 'schedule', 'id', 'username', 'first_name', 'last_name', 'email', 'date_joined', 'resources']
         read_only_fields =['id', 'date_joined']
 
 
