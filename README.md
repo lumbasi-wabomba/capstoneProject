@@ -303,19 +303,3 @@ This structured approach ensures that the code is modular, maintainable, and sca
 └── .gitignore                  # Specifies files/folders to be ignored by Git
 ```
 
-## 7. Contributing
-
-We welcome contributions to UniCollab! If you'd like to help improve this project, please follow these guidelines:
-
-1.  **Fork the repository.**
-2.  **Create a new branch** for your feature or bug fix:
-    `git checkout -b feature/your-awesome-feature`
-    or
-    `git checkout -b bugfix/fix-issue-123`
-3.  **Make your changes.** Ensure your code adheres to the project's style.
-4.  **Write clear commit messages:**
-    `git commit -m "feat: Add new task filtering by due date"`
-5.  **Push your branch** to your forked repository:
-    `git push origin feature/your-awesome-feature`
-6.  **Open a Pull Request** to the `main` branch of the original repository. Describe your changes clearly.
-
